@@ -122,16 +122,17 @@ em {
 .flowers {
   position: absolute;
   z-index: -1;
-  bottom: 0;
-  left: -12px;
-  width: 100px;
-  height: 320px;
-  background: url("/paper.jpg") no-repeat;
-  background-size: 850px 478px;
-  background-position: -42px -62px;
-  opacity: 0.55;
-  mask-image: linear-gradient(to right, black 65%, transparent);
+  bottom: -12px;
+  left: -38px;
+  width: 144px;
+  height: 310px;
+  object-fit: contain;
+  object-position: left bottom;
+  opacity: 0.65;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, black 50%, transparent 98%);
 }
+
 .monogram {
   font-family: Georgia, serif;
   font-size: 30px;
@@ -236,7 +237,7 @@ section p {
   background: var(--pink);
   margin: 0 20px;
   border-radius: 180px 180px 12px 12px;
-  padding-top: 78px;
+  padding-top: 42px;
 }
 .invitation-card h2 {
   font-size: 25px;
@@ -755,5 +756,61 @@ blockquote p {
   button,
   .button {
     transition: none;
+  }
+}
+
+.floral-heading {
+  display: flex;
+  justify-content: center;
+  height: 140px;
+  margin: 0 auto 20px;
+  pointer-events: none;
+}
+.floral-heading img,
+.floral-divider img {
+  width: 110px;
+  height: 140px;
+  object-fit: contain;
+}
+.floral-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: -20px auto 28px;
+  max-width: 380px;
+  pointer-events: none;
+}
+.floral-divider::before,
+.floral-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.floral-thanks {
+  height: 180px;
+  margin-bottom: 4px;
+}
+.floral-thanks img {
+  width: 130px;
+  height: 180px;
+}
+@media (min-width: 700px) {
+  .flowers {
+    left: -50px;
+    width: 170px;
+    height: 350px;
+  }
+  .floral-heading {
+    height: 160px;
+  }
+  .floral-heading img {
+    width: 120px;
+    height: 160px;
+  }
+  .floral-thanks,
+  .floral-thanks img {
+    height: 200px;
   }
 }
