@@ -1,13 +1,11 @@
-# Thiệp cưới mobile first cho Ngọc Tùng & Dương Cúc
+# Thiệp cưới Ngọc Tùng & Dương Cúc — Workers, D1 và quản lý RSVP
 
-Thêm website thiệp cưới theo thiệp giấy: nền trắng, tím than, hồng nhạt và hoa của thiệp. Hiển thị rõ tiệc 10:00 ngày 18.10.2026, riêng lễ vu quy 12:30. Có mở thiệp, thông tin gia đình, album placeholder dễ thay, bản đồ/chỉ đường, lịch .ics, lịch trình, RSVP và sổ lưu bút.
+Thêm website thiệp cưới mobile first theo thiệp giấy: nền trắng, tím than, hồng nhạt và hoa của thiệp. Tiệc mời 10:00 ngày 18.10.2026 hiển thị riêng lễ vu quy 12:30; tên bố mẹ và địa chỉ chép từ thiệp giấy. Có mở thiệp, album placeholder dễ thay, lịch tháng/lịch .ics, bản đồ/chỉ đường, lịch trình, RSVP và sổ lưu bút.
 
-Backend ghi RSVP và lời chúc thật vào SQLite; đăng nhập quản lý qua cookie HttpOnly, xem RSVP, xuất CSV và duyệt/ẩn lời chúc. Lời chúc chờ duyệt không hiển thị công khai. Nhạc tùy chọn chỉ phát sau mở thiệp. Có metadata và ảnh chia sẻ. Không có ngân hàng/QR/mừng cưới/dress code, không dùng ảnh đôi demo.
+Runtime hosting chuyển sang Cloudflare Worker + Static Assets + D1, đặt chung trong Workers & Pages. D1 lưu RSVP/lời chúc thật dùng chung giữa thiết bị. Quản lý đăng nhập qua cookie HttpOnly, mật khẩu PBKDF2 trong Cloudflare secret, xuất CSV và duyệt/ẩn lời chúc. Lời chúc chờ duyệt không công khai; lỗi D1 không báo lưu thành công. Secret đổi sẽ vô hiệu phiên quản lý cũ. Runtime Node.js/SQLite được giữ cho local, không chia sẻ DB với D1.
 
-Validation: `npm run check`, `npm test`; Playwright kiểm tra mobile 320/390px, tablet 768px, desktop 1440px, album dialog, lưu RSVP/lời chúc qua hai browser context và duyệt lời chúc. README ghi cấu hình secrets, persistent volume, thay ảnh và nhạc. Không deploy. Cần cấu hình PUBLIC_ORIGIN HTTPS, ADMIN_PASSWORD và ổ đĩa bền vững trước khi dùng thật.
+Nhạc tùy chọn chỉ phát sau mở thiệp. Có metadata và ảnh chia sẻ, album vuốt và dialog. Không thêm ngân hàng/QR/mừng cưới/dress code hoặc ảnh đôi demo. Chưa cung cấp ảnh cưới và file nhạc thật.
 
-Bổ sung bố cục từ các ảnh mẫu còn lại: lịch tháng đánh dấu ngày cưới, nút RSVP ở phần tiệc, timeline và thẻ lời chúc kèm giờ Việt Nam. Đã kiểm tra lại mobile/responsive và luồng lưu/duyệt thật.
+Validation: kiểm tra cú pháp, API Node.js và Workers/D1 trong Miniflare/workerd, giao diện ở 320/390/768/1440px và phóng chữ 200%, tất cả trạng thái RSVP, lưu/duyệt giữa hai browser context, CSV, logout, nhạc sau thao tác mở, mất kết nối, ảnh thật/ảnh lỗi, D1 từ chối ghi, metadata và lịch. Dry-run build Worker. GitHub Actions chạy kiểm tra và lưu screenshot, không tự deploy.
 
-Rà soát cuối: sửa kích thước hero khi thay ảnh thật, fallback ảnh lỗi, báo lỗi mất kết nối và dữ liệu gửi sai, bổ sung vuốt ảnh toàn màn hình, metadata nhất quán ở /index.html. Định dạng code để review dễ hơn. Kiểm tra UI tự dùng database tạm và không sửa asset chia sẻ. GitHub Actions chạy kiểm tra API/giao diện và lưu screenshot; workflow không có bước deploy.
-
-Đã đạt `npm run check`, `npm test`, `npm run test:ui`, `npm audit --omit=dev` (0 vulnerabilities). Kiểm tra cả phóng chữ 200%, nhạc sau thao tác mở, ba trạng thái RSVP, mất kết nối, SQLite từ chối ghi, ảnh lỗi, duyệt/ẩn lời chúc, logout và CSV. Ảnh cưới vẫn là placeholder theo yêu cầu; file nhạc cần cung cấp để bật trong môi trường thật.
+README ghi quy trình D1 migration, origin HTTPS, secret quản lý và backup. wrangler.json hiện có UUID D1 placeholder/origin local để kiểm tra; script deploy từ chối cấu hình này. Chỉ báo deploy thành công khi đã xác minh URL thật trên tài khoản Cloudflare.

@@ -1,0 +1,2 @@
+# Workers only. Generate a PBKDF2 hash using scripts/admin-secret.mjs.
+ADMIN_PASSWORD_HASH=

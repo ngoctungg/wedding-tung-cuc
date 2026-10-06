@@ -1,8 +1,56 @@
 # Thiệp cưới Ngọc Tùng & Dương Cúc
 
-Website mobile first, Node.js 24 + Express 5 + SQLite tích hợp. Không có thông tin ngân hàng, QR, mừng cưới hoặc dress code. Chưa deploy.
+[Tài liệu nghiệp vụ](docs/NGHIEP-VU.md) mô tả nội dung chính thức, luồng khách mời/quản lý, quy tắc RSVP/lời chúc, giới hạn hiện tại và tiêu chí nghiệm thu.
 
-## Chạy local
+Website mobile first với hai runtime: Cloudflare Workers + Static Assets + D1 cho hosting và Node.js 24 + Express 5 + SQLite cho local. Không có thông tin ngân hàng, QR, mừng cưới hoặc dress code. Trạng thái deploy thật phải được xác minh trên Cloudflare, không suy ra từ build local.
+
+
+## Cloudflare Workers & Pages
+
+Bản Cloudflare dùng **một Worker với Static Assets và binding D1**, hiển thị trong mục **Workers & Pages** của dashboard. Không cần thêm một dự án Pages riêng. Giao diện và API cùng origin, tránh CORS và dùng cookie quản lý cùng site. `cloudflare/worker.js` là entrypoint; không chạy Express hoặc `node:sqlite` trên edge. Runtime Node.js cũ vẫn có thể chạy local; hai database độc lập và không tự đồng bộ.
+
+### Kiểm tra local bằng runtime Cloudflare
+
+```sh
+npm ci
+npm run check
+npm test
+npx playwright install chromium
+npm run test:worker:ui
+npm run build:worker
+```
+
+Kiểm tra API Workers và giao diện dùng Miniflare/workerd + D1 local thật, database tạm riêng, tự dọn sau khi chạy. `build:worker` chỉ dry-run, không tạo tài nguyên hoặc deploy. Wrangler/Miniflare được khóa phiên bản trong lockfile; helper dùng adapter V4 được Miniflare 5 cung cấp.
+
+Để chạy thủ công: tạo `.dev.vars` từ `.dev.vars.example`, đặt `ADMIN_PASSWORD_HASH` theo hướng dẫn dưới, chạy `npm run db:migrate:local`, sau đó `npm run dev:worker`; truy cập http://localhost:3104. Địa chỉ phải trùng `PUBLIC_ORIGIN` trong wrangler.json.
+
+### Thiết lập production
+
+Cần kết nối tài khoản Cloudflare có quyền **Workers Scripts Edit** và **D1 Edit**. Đăng nhập plugin Cloudflare không tự tạo phiên OAuth Wrangler trong terminal. Có thể deploy qua plugin khi công cụ tài khoản/API của plugin có sẵn, hoặc Wrangler đã xác thực trong chính môi trường chạy code.
+
+1. Kiểm tra account bằng `npx wrangler whoami` và chọn đúng account.
+2. Tạo D1 bằng `npx wrangler d1 create wedding-tung-cuc`; ghi UUID thật vào `d1_databases[0].database_id` trong wrangler.json. UUID toàn số 0 hiện tại chỉ là placeholder cho build/local; script deploy từ chối dùng placeholder.
+3. Lấy subdomain Workers của tài khoản; đặt `PUBLIC_ORIGIN` thành URL HTTPS thật `https://wedding-tung-cuc.<subdomain>.workers.dev`. Không lấy origin từ Host/X-Forwarded-Host của khách. Khi thêm custom domain, đổi cấu hình origin theo domain chính thức.
+4. Chạy `npm run db:migrate:remote` để tạo schema. Không có seed khách/RSVP/lời chúc demo trong migration.
+5. Đặt secret `ADMIN_PASSWORD_HASH` bằng `npx wrangler secret put ADMIN_PASSWORD_HASH`. Hash có định dạng `pbkdf2$100000$<salt hex 16 bytes>$<digest hex 32 bytes>`. `scripts/admin-secret.mjs` nhận mật khẩu 16–256 ký tự **qua stdin**, không qua đối số command line. Ví dụ terminal Bash đọc kín rồi ghi hash vào file tạm ngoài repo:
+
+```sh
+read -r -s -p 'Mật khẩu quản lý: ' wedding_admin_password
+printf '%s' "$wedding_admin_password" | node scripts/admin-secret.mjs > /tmp/wedding-admin-hash
+unset wedding_admin_password
+npx wrangler secret put ADMIN_PASSWORD_HASH < /tmp/wedding-admin-hash
+rm /tmp/wedding-admin-hash
+```
+
+6. Chạy `npm run deploy`. Sau khi deploy phải kiểm tra URL HTTPS, đăng nhập quản lý, RSVP qua hai thiết bị, duyệt/ẩn lời chúc, CSV, metadata và ảnh chia sẻ. Chỉ dọn chính các bản ghi kiểm tra, không xóa dữ liệu khách.
+
+Secret không nằm trong source, wrangler.json hoặc bundle public. `.dev.vars`, `.wrangler` và `.deploy` được gitignore. Phiên hết hạn sau 8 giờ và tự vô hiệu khi thay hash mật khẩu (credential_version). Mật khẩu được xác minh bằng PBKDF2/Web Crypto và timingSafeEqual của Workers. Cookie HttpOnly, SameSite Strict và Secure với HTTPS.
+
+D1 lưu dữ liệu dùng chung giữa thiết bị; mỗi request mở session `first-primary` để lần đọc đầu bắt đầu ở primary. Giới hạn gửi dùng IP do Cloudflare cung cấp, lưu hash IP; không tin X-Forwarded-For. Requests sai Origin bị chặn. Public API chỉ trả lời chúc đã duyệt. Lỗi D1 trả lỗi thật, không giả lập lưu thành công. Logging có cấu trúc, không log mật khẩu, token, tên hoặc lời chúc khách.
+
+Backup D1: `npx wrangler d1 export DB --remote --output <file-backup-ngoai-repo.sql>`. Backup chứa dữ liệu khách nên phải lưu kín. Có thể xem phiên bản và rollback Worker bằng Wrangler; rollback Worker không rollback dữ liệu D1. Workflow GitHub chỉ kiểm tra, không tự deploy hoặc yêu cầu secret Cloudflare.
+
+## Chạy local bằng Node.js
 
 ```sh
 npm ci
@@ -43,7 +91,7 @@ node tests/mobile.mjs
 
 ## PR
 
-Repo đích: https://github.com/ngoctungg/wedding-tung-cuc. Repo ban đầu trống và không có AGENTS.md. Nhánh code: `feat/wedding-invitation`; nhánh `main` local chỉ có commit khởi tạo rỗng để làm nhánh đích review. Cần xác thực GitHub có quyền ghi để push và mở PR; không deploy trong quá trình này.
+Repo đích: https://github.com/ngoctungg/wedding-tung-cuc. Repo ban đầu trống và không có AGENTS.md. Nhánh code: `feat/wedding-invitation`; nhánh `main` local chỉ có commit khởi tạo rỗng để làm nhánh đích review. Cần xác thực GitHub có quyền ghi để push và mở PR; deploy chỉ khi tài khoản Cloudflare đã kết nối và được yêu cầu trong phiên làm việc.
 
 Cập nhật theo bốn ảnh mẫu bổ sung: lịch tháng 10/2026 đánh dấu Chủ nhật ngày 18, nút RSVP ngay phần tiệc, lịch trình trục thời gian và thẻ lời chúc có ngày giờ Việt Nam (Asia/Ho_Chi_Minh). Nội dung vẫn lấy từ thiệp giấy; không thêm dress code từ mẫu.
 
