@@ -6,15 +6,23 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/admin.js",
-    "test:ui": "node tests/mobile.mjs"
+    "check": "node --check server.js && node --check public/app.js && node --check public/admin.js && node --check cloudflare/worker.js",
+    "test:ui": "node tests/mobile.mjs",
+    "dev:worker": "wrangler dev --port 3104",
+    "test:worker:ui": "TEST_RUNTIME=cloudflare node tests/mobile.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "deploy": "node scripts/deploy.mjs",
+    "build:worker": "wrangler deploy --dry-run --outdir .deploy"
   },
   "dependencies": {
     "express": "^5.1.0",
     "helmet": "^8.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "miniflare": "^5.20261001.0-alpha",
+    "wrangler": "^4.147.0"
   },
   "engines": {
     "node": ">=24"

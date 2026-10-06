@@ -3,27 +3,39 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
+import { startWorker } from "./worker-runtime.mjs";
 const dir = mkdtempSync(`${tmpdir()}/wedding-ui-`);
-const origin = "http://localhost:3102";
+const cloudflare = process.env.TEST_RUNTIME === "cloudflare";
+const origin = cloudflare ? "http://localhost:3104" : "http://localhost:3102";
 const password = "isolated-ui-test-password";
-const server = spawn(process.execPath, ["server.js"], {
-  env: {
-    ...process.env,
-    NODE_ENV: "development",
-    PORT: "3102",
-    PUBLIC_ORIGIN: origin,
-    DATA_DIR: dir,
-    ADMIN_PASSWORD: password,
-    MUSIC_URL: "/media/test.wav",
-  },
-});
-let browser;
+const server = cloudflare
+  ? null
+  : spawn(process.execPath, ["server.js"], {
+      env: {
+        ...process.env,
+        NODE_ENV: "development",
+        PORT: "3102",
+        PUBLIC_ORIGIN: origin,
+        DATA_DIR: dir,
+        ADMIN_PASSWORD: password,
+        MUSIC_URL: "/media/test.wav",
+      },
+    });
+let browser, worker;
 try {
-  await new Promise((resolve, reject) => {
-    server.stdout.once("data", resolve);
-    server.once("error", reject);
-    server.once("exit", (code) => reject(Error(`Server exited: ${code}`)));
-  });
+  if (cloudflare)
+    worker = await startWorker({
+      origin,
+      port: 3104,
+      password,
+      music: "/media/test.wav",
+    });
+  else
+    await new Promise((resolve, reject) => {
+      server.stdout.once("data", resolve);
+      server.once("error", reject);
+      server.once("exit", (code) => reject(Error(`Server exited: ${code}`)));
+    });
   mkdirSync("test-results", { recursive: true });
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -93,18 +105,14 @@ try {
   );
   await page.evaluate(() => (document.documentElement.style.fontSize = ""));
   await page.setViewportSize({ width: 390, height: 844 });
-  await page
-    .locator("#party")
-    .screenshot({
-      path: "test-results/mobile-party.png",
-      animations: "disabled",
-    });
-  await page
-    .locator(".schedule")
-    .screenshot({
-      path: "test-results/mobile-schedule.png",
-      animations: "disabled",
-    });
+  await page.locator("#party").screenshot({
+    path: "test-results/mobile-party.png",
+    animations: "disabled",
+  });
+  await page.locator(".schedule").screenshot({
+    path: "test-results/mobile-schedule.png",
+    animations: "disabled",
+  });
   assert.equal(await page.locator(".wedding-day").textContent(), "18");
   await page.locator('#party a[href="#rsvp"]').click();
   await page.locator("#photos button").first().click();
@@ -229,7 +237,8 @@ try {
   );
 } finally {
   await browser?.close();
-  if (server.exitCode === null)
+  await worker?.close();
+  if (server && server.exitCode === null)
     await new Promise((resolve) => {
       server.once("exit", resolve);
       server.kill();
