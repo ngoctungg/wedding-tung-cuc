@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Tung Cuc//Wedding//VI
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:tung-cuc-20261018@wedding.local
+DTSTAMP:20261005T000000Z
+DTSTART:20261018T030000Z
+DTEND:20261018T063000Z
+SUMMARY:Tiệc cưới Ngọc Tùng & Dương Cúc
+LOCATION:Xóm Trại – Thôn Vân Côn – Xã An Khánh – Hà Nội
+DESCRIPTION:Giờ mời tiệc 10:00 (giờ Việt Nam). Lễ vu quy 12:30
+ . Tại tư gia nhà gái\, gần Nhà văn hóa thôn Vân Côn. https:/
+ /maps.app.goo.gl/1c1YXLxtSV5EKKU49
+END:VEVENT
+END:VCALENDAR

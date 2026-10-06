@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Quản lý thiệp cưới</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/admin.js" defer></script>
+  </head>
+  <body>
+    <main class="admin">
+      <h1>Quản lý thiệp cưới</h1>
+      <form id="login">
+        <label
+          >Mật khẩu quản lý<input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required /></label
+        ><button>Đăng nhập</button>
+        <p id="login-status" role="status"></p>
+      </form>
+      <div id="dashboard" hidden>
+        <header>
+          <a class="button" href="/api/admin/export">Xuất RSVP CSV</a
+          ><button id="logout">Đăng xuất</button
+          ><button id="refresh">Làm mới</button>
+        </header>
+        <p id="admin-status" role="status"></p>
+        <h2>Xác nhận tham dự</h2>
+        <p id="totals"></p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên</th>
+                <th>Tham dự</th>
+                <th>Tổng số người</th>
+                <th>Thời gian UTC</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <h2>Duyệt lời chúc</h2>
+        <div id="moderation"></div>
+      </div>
+    </main>
+  </body>
+</html>
