@@ -1,5 +1,7 @@
 # Thiệp cưới Ngọc Tùng & Dương Cúc
 
+[Tài liệu nghiệp vụ](docs/NGHIEP-VU.md) mô tả nội dung chính thức, luồng khách mời/quản lý, quy tắc RSVP/lời chúc, giới hạn hiện tại và tiêu chí nghiệm thu.
+
 Website mobile first với hai runtime: Cloudflare Workers + Static Assets + D1 cho hosting và Node.js 24 + Express 5 + SQLite cho local. Không có thông tin ngân hàng, QR, mừng cưới hoặc dress code. Trạng thái deploy thật phải được xác minh trên Cloudflare, không suy ra từ build local.
 
 
