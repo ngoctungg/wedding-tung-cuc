@@ -739,6 +739,10 @@ blockquote {
   object-fit: cover;
   flex-shrink: 0;
 }
+.hero-photo:has(> img) {
+  height: auto;
+  aspect-ratio: 2 / 3;
+}
 button:disabled {
   cursor: wait;
   opacity: 0.65;
